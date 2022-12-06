@@ -18,9 +18,9 @@ from api.filters import TagFilter
 from api.mixins import ListCreateDestroyViewSet
 from api.permissions import (IsUserOrGuest, IsRoleAdmin, IsGuest)
 from api.serializers import (AdminUserSerializer, FollowSerializer,
-                             IngredientSerializer, RecipeSerializer,
-                             SignupSerializer, TagSerializer,
-                             TagRecipeSerializer,
+                             IngredientSerializer,IngredientRecipeSerializer,
+                             RecipeSerializer, SignupSerializer,
+                             TagSerializer, TagRecipeSerializer,
                              TokenSerializer, UserSerializer)
 
 
@@ -190,3 +190,8 @@ class IngredientViewSet(ListCreateDestroyViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
+
+    def get_serializer_class(self):
+        if self.action in ('create', 'update', 'partial_update'):
+            return IngredientRecipeSerializer
+        return IngredientSerializer
