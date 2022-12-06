@@ -38,6 +38,7 @@ class User(AbstractUser):
     def is_user(self):
         return self.role == 'user'
 
+
 class Follow(models.Model):
     author = models.ForeignKey(
         User,

@@ -18,7 +18,7 @@ from api.filters import TagFilter
 from api.mixins import ListCreateDestroyViewSet
 from api.permissions import (IsUserOrGuest, IsRoleAdmin, IsGuest)
 from api.serializers import (AdminUserSerializer, FollowSerializer,
-                             IngredientSerializer,IngredientRecipeSerializer,
+                             IngredientSerializer, IngredientRecipeSerializer,
                              RecipeSerializer, SignupSerializer,
                              TagSerializer, TagRecipeSerializer,
                              TokenSerializer, UserSerializer)
@@ -129,7 +129,7 @@ class FollowViewSet(
         author_id = self.kwargs['user_id']
         user_id = request.user.id
         follow = get_object_or_404(
-            Follow, user__id=user_id,author__id=author_id
+            Follow, user__id=user_id, author__id=author_id
         )
         follow.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -151,7 +151,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         tag_id = self.kwargs.get('tag_id')
         tag = get_object_or_404(Tag, id=tag_id)
         serializer.save(user=self.request.user, tag=tag)
-    
+
     @action(detail=False, methods=['GET'])
     def download_shopping_cart(self, request):
         ingredients = IngredientRecipe.objects.filter(

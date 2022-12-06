@@ -96,9 +96,9 @@ class IngredientRecipe(models.Model):
 
     class Meta:
         ordering = ('-id',)
-        verbose_name ='Ингредиент рецепта'
+        verbose_name = 'Ингредиент рецепта'
         verbose_name_plural = 'Ингридиенты рецепта'
-    
+
     def __str__(self):
         return (
             f'{self.ingredient.name} :: {self.ingredient.measurement_unit}'
@@ -115,7 +115,7 @@ class FavoriteShoppingCart(models.Model):
         Recipe,
         on_delete=models.CASCADE,
         verbose_name='Рецепт')
-    
+
     class Meta:
         abstract = True
         constraints = [
@@ -124,7 +124,7 @@ class FavoriteShoppingCart(models.Model):
                 name='unique_user_recipe_%(class)s'
             )
         ]
-   
+
     def __str__(self):
         return f'{self.user} :: {self.recipe}'
 
