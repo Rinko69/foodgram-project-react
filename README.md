@@ -1,5 +1,5 @@
 # Сервис Foodgram
-![yamdb workflow](https://github.com/Rinko69/yamdb_final/actions/workflows/yamdb_workflow.yml/badge.svg)
+![foodgram_workflow](https://github.com/Rinko69/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
 http://158.160.14.164:80
 ____
 
