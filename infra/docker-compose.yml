@@ -6,7 +6,7 @@ services:
     volumes:
       - /var/lib/postgresql/data/
     env_file:
-      - ./infra/.env
+      - ./.env
   web:
     image: rinko69/foodgram-project-react:latest
     restart: always
@@ -20,7 +20,7 @@ services:
     links:
       - db:db
     env_file:
-      - ./infra/.env
+      - ./.env
   frontend:
     build:
       context: ../frontend
