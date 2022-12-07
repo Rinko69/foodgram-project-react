@@ -19,7 +19,8 @@ from api.mixins import ListCreateDestroyViewSet
 from api.permissions import (IsUserOrGuest, IsRoleAdmin, IsGuest)
 from api.serializers import (AdminUserSerializer, FollowSerializer,
                              IngredientSerializer, IngredientRecipeSerializer,
-                             RecipeSerializer, SignupSerializer,
+                             RecipeSerializer, RecipePostSerializer,
+                             SignupSerializer,
                              TagSerializer, TagRecipeSerializer,
                              TokenSerializer, UserSerializer)
 
@@ -151,6 +152,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         tag_id = self.kwargs.get('tag_id')
         tag = get_object_or_404(Tag, id=tag_id)
         serializer.save(user=self.request.user, tag=tag)
+        return RecipePostSerializer
 
     @action(detail=False, methods=['GET'])
     def download_shopping_cart(self, request):

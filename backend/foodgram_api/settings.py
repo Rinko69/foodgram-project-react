@@ -13,7 +13,7 @@ SECRET_KEY = 'j@_&azs6y9e1^9m#8k1r2m)g*5hhazhz$j1o@_7_!m+k@73-1^'
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '51.250.31.16', '*']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '158.160.14.164', '*']
 
 CORS_URLS_REGEX = r'^/api/.*$'
 CORS_ALLOWED_ORIGINS = [
@@ -21,9 +21,11 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 INSTALLED_APPS = [
+    'api.apps.ApiConfig',
     'colorfield',
     'rest_framework',
     'recipes.apps.RecipesConfig',
+    'users.apps.UsersConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -31,7 +33,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_measurement',
-    'api.apps.ApiConfig',
     'django.db.models',
     'django_filters',
 ]
@@ -46,7 +47,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'foodgram.urls'
+ROOT_URLCONF = 'foodgram_api.urls'
 
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 TEMPLATES = [
@@ -65,7 +66,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'foodgram.wsgi.application'
+WSGI_APPLICATION = 'foodgram_api.wsgi.application'
 
 
 DATABASES = {
