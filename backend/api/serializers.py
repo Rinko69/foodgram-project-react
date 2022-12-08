@@ -125,7 +125,7 @@ class FollowSerializer(serializers.ModelSerializer):
         return value
 
     class Meta:
-        fields = ['user', 'author']
+        fields = ('user', 'author')
         model = Follow
         validators = [
             UniqueTogetherValidator(
@@ -208,26 +208,37 @@ class RecipePostSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all(),
         many=True
     )
-    ingredients = IngredientRecipeSerializer(many=True, required=False)
+    ingredients = IngredientRecipeSerializer(many=True)
     author = UserSerializer(read_only=True)
     image = Base64ImageField(max_length=None)
     cooking_time = serializers.IntegerField()
+    amount = serializers.IntegerField()
 
     class Meta:
         model = Recipe
         fields = (
             'id', 'tags', 'author',
-            'ingredients', 'name',
+            'ingredients', 'name', 'amount',
             'image', 'text', 'cooking_time'
         )
         read_only_fields = ('author',)
 
-    def validate_tags(self, tags):
-        for tag in tags:
-            if not Tag.objects.filter(id=tag.id).exists():
+    def validate(data):
+        errors = []
+        if 'tag' not in data:
+            errors.append('Указанного тэга не существует')
+        
+        if 'ingredients' not in data:
+                errors.append('В рецепте должны быть ингридиенты')
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+    def validate_ingredient_amount(self, amount):
+        if amount < 0:
                 raise serializers.ValidationError(
-                    'Указанного тэга не существует')
-        return tags
+                    'Количество должно быть больше нуля')
+        return amount
 
     def validate_cooking_time(self, cooking_time):
         if cooking_time < 1:
@@ -248,7 +259,7 @@ class RecipePostSerializer(serializers.ModelSerializer):
         IngredientRecipe.objects.bulk_create(ingredient_list)
 
     def create(self, validated_data):
-        request = self.context.get('request', None)
+        request = self.context.get('request')
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(author=request.user, **validated_data)
