@@ -23,8 +23,8 @@ services:
       - ./.env
   frontend:
     build:
-      context: ../frontend
-      dockerfile: ../Dockerfile
+      context: ../
+      dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
   nginx:
