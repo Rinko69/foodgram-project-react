@@ -1,6 +1,8 @@
 from drf_extra_fields.fields import Base64ImageField
+from iteration_utilities import duplicates, unique_everseen
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from rest_framework.utils import model_meta
 from rest_framework.validators import UniqueTogetherValidator
 
 from recipes.models import Recipe, ShoppingCart, Tag
@@ -256,6 +258,10 @@ class RecipePostSerializer(serializers.ModelSerializer):
                     recipe=recipe,
                 )
             )
+        duplicate = unique_everseen(duplicates(ingredient_list))
+        if duplicate:
+            raise serializers.ValidationError(
+                'Ингредиенты не должны повторяться')
         IngredientRecipe.objects.bulk_create(ingredient_list)
 
     def create(self, validated_data):
@@ -283,11 +289,18 @@ class RecipePostSerializer(serializers.ModelSerializer):
                 amount=amount,
                 recipe=instance,
             )
-        instance.image = validated_data.pop('image')
-        instance.text = validated_data.pop('text')
-        instance.cooking_time = validated_data.pop('cooking_time')
-        instance.name = validated_data.pop('name')
-        return instance
+        info = model_meta.get_field_info(instance)
+        m2m_fields = []
+        for attr, value in validated_data.items():
+            if attr in info.relations and info.relations[attr].to_many:
+                m2m_fields.append((attr, value))
+            else:
+                setattr(instance, attr, value)
+        instance.save()
+        for attr, value in m2m_fields:
+            field = getattr(instance, attr)
+            field.set(value)
+        return super(RecipePostSerializer, self).update(instance, validated_data)
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
