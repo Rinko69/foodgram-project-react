@@ -120,7 +120,7 @@ class FavoriteShoppingCart(models.Model):
         abstract = True
         constraints = [
             models.UniqueConstraint(
-                fields=('users', 'recipe'),
+                fields=('user', 'recipe'),
                 name='unique_user_recipe_%(class)s'
             )
         ]
