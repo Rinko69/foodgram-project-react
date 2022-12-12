@@ -9,9 +9,10 @@ from .views import (FollowViewSet, RecipeViewSet,
 v1 = routers.DefaultRouter()
 v1.register('users', UserViewSet, basename='users')
 v1.register('tags', TagViewSet, basename='tags')
-v1.register('recipes', RecipeViewSet, basename='recipes')
-v1.register(r'follow/(?P<user_id>\d+)/folow_list',
-            FollowViewSet, basename='follow')
+v1.register(r'tags/(?P<tag_id>\d+)/recipes',
+            RecipeViewSet, basename='recipes')
+v1.register(r'users/(?P<user_id>\d+)/follow/(?P<author_id>\d+)/follow_list',
+            FollowViewSet, basename='follow_list')
 
 urlpatterns = [
     path('v1/', include(v1.urls)),
