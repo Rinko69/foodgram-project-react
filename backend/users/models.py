@@ -1,51 +1,56 @@
+import enum
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-ADMIN = 'admin'
-GUEST = 'guest'
-USER = 'user'
-
-CHOICES = [
-    (ADMIN, 'Administrator'),
-    (GUEST, 'Guest'),
-    (USER, 'User'),
-]
+class Roles(enum.Enum):
+    admin = 'admin'
+    user = 'user'
 
 
-class User(AbstractUser):
+class MyUser(AbstractUser):
+    CHOICES = (
+        (Roles.admin.name, 'Администратор'),
+        (Roles.user.name, 'Пользователь'),
+    )
+    first_name = models.CharField(
+        max_length=150,
+    )
+    last_name = models.CharField(
+        max_length=150,
+    )
     email = models.EmailField(
         unique=True,
+        max_length=254,
         verbose_name='Адрес электронной почты')
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+    )
+    password = models.CharField(
+        max_length=150,
+    )
     role = models.CharField(
-        max_length=16,
+        max_length=10,
         choices=CHOICES,
-        default=GUEST,
-        verbose_name='Тип пользователя')
+        default=Roles.user.name,
+    )
+    class Meta:
+        ordering = ('-username',)
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
     def __str__(self) -> str:
         return self.username
 
-    @property
-    def is_admin(self):
-        return self.role == 'admin'
-
-    @property
-    def is_guest(self):
-        return self.role == 'guest'
-
-    @property
-    def is_user(self):
-        return self.role == 'user'
-
 
 class Follow(models.Model):
     author = models.ForeignKey(
-        User,
+        MyUser,
         on_delete=models.CASCADE,
         related_name='author',)
     user = models.ForeignKey(
-        User,
+        MyUser,
         on_delete=models.CASCADE,
         related_name='user',)
 

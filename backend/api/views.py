@@ -1,3 +1,4 @@
+from django.contrib import admin
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Sum
@@ -12,7 +13,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from foodgram_api.settings import ADMIN_EMAIL
 from recipes.models import Ingredient, IngredientRecipe
 from recipes.models import Recipe, Tag
-from users.models import User, Follow
+from users.models import MyUser, Follow
 
 from api.filters import TagFilter
 from api.mixins import ListCreateDestroyViewSet
@@ -35,7 +36,7 @@ def send_confirmation_code(user):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = MyUser.objects.all()
     serializer_class = AdminUserSerializer
     permission_classes = (IsRoleAdmin,)
     filter_backends = (filters.SearchFilter,)
@@ -67,7 +68,7 @@ def signup(request):
     serializer.is_valid(raise_exception=True)
     serializer.save()
     user = get_object_or_404(
-        User,
+        MyUser,
         username=serializer.validated_data['username']
     )
     send_confirmation_code(user)
@@ -81,7 +82,7 @@ def code(request):
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data['username']
     email = serializer.validated_data['email']
-    user = get_object_or_404(User, username=username, email=email)
+    user = get_object_or_404(MyUser, username=username, email=email)
     send_confirmation_code(user)
     return Response(serializer.data, status=status.HTTP_201_OK)
 
@@ -94,7 +95,7 @@ def token(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     username = serializer.data['username']
-    user = get_object_or_404(User, username=username)
+    user = get_object_or_404(MyUser, username=username)
     confirmation_code = serializer.data['confirmation_code']
     if not default_token_generator.check_token(user, confirmation_code):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -116,11 +117,11 @@ class FollowViewSet(
     search_fields = ('author__username',)
 
     def get_queryset(self):
-        return get_list_or_404(User, author__user=self.request.user)
+        return get_list_or_404(MyUser, author__user=self.request.user)
 
     def create(self, request, *args, **kwargs):
         user_id = self.kwargs.get('users_id')
-        user = get_object_or_404(User, id=user_id)
+        user = get_object_or_404(MyUser, id=user_id)
         Follow.objects.create(
             user=request.user, author=user
         )

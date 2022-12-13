@@ -1,29 +1,50 @@
+from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from iteration_utilities import duplicates, unique_everseen
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.utils import model_meta
-from rest_framework.validators import UniqueTogetherValidator
+from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 
 from recipes.models import Recipe, ShoppingCart, Tag
 from recipes.models import Favorite, Ingredient, IngredientRecipe
-from users.models import User, Follow
+from users.models import MyUser, Follow
 
 
 class UserSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True)
-    email = serializers.CharField(required=True)
+    username = serializers.CharField(
+        max_length=100,
+        validators=[UniqueValidator(queryset=MyUser.objects.all())],
+        required=True
+    )
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=MyUser.objects.all())],
+        required=True,
+    )
+    password = serializers.CharField(
+        min_length=8,
+        max_length=100,
+        write_only=True,
+    )
     role = serializers.StringRelatedField(read_only=True)
     is_following = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = User
+        model = MyUser
         fields = (
             'username', 'email',
             'first_name', 'last_name',
-            'id', 'role',
+            'id', 'password',
             'is_following',
         )
+
+    @transaction.atomic
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = super().create(validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
     def validate_username(self, value):
         if value == 'me':
@@ -42,7 +63,7 @@ class UserSerializer(serializers.ModelSerializer):
 class AdminUserSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = User
+        model = MyUser
         fields = (
             'username', 'email', 'first_name', 'last_name', 'id', 'role',
         )
@@ -58,7 +79,7 @@ class AdminUserSerializer(serializers.ModelSerializer):
 class SignupSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = User
+        model = MyUser
         fields = ('username', 'email',)
 
     def validate_username(self, value):
@@ -80,7 +101,7 @@ class FollowListSerializer(serializers.ModelSerializer):
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = User
+        model = MyUser
         fields = [
             'id',
             'email',
@@ -116,7 +137,7 @@ class FollowSerializer(serializers.ModelSerializer):
     )
     author = SlugRelatedField(
         slug_field='username',
-        queryset=User.objects.all()
+        queryset=MyUser.objects.all()
     )
 
     def validate_following(self, value):

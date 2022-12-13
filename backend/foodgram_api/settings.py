@@ -20,6 +20,10 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://subdomain.example.com',
+]
+
 INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'colorfield',
@@ -116,7 +120,7 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'users.MyUser'
 
 AUTH_PROFILE_MODULE = 'users.RegistrationProfile'
 

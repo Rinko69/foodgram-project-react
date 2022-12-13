@@ -2,7 +2,7 @@ from colorfield.fields import ColorField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from users.models import User
+from users.models import MyUser
 
 
 H = 'hour'
@@ -47,7 +47,7 @@ class Ingredient(models.Model):
 class Recipe(models.Model):
     tags = models.ManyToManyField(Tag)
     author = models.ForeignKey(
-        User,
+        MyUser,
         on_delete=models.CASCADE,
         related_name='recipes',
         verbose_name='Автор',)
@@ -108,7 +108,7 @@ class IngredientRecipe(models.Model):
 
 class FavoriteShoppingCart(models.Model):
     user = models.ForeignKey(
-        User,
+        MyUser,
         on_delete=models.CASCADE,
         verbose_name='Пользователь',)
     recipe = models.ForeignKey(
