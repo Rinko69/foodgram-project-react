@@ -1,6 +1,6 @@
 FROM python:3.7-slim
 WORKDIR /app
-COPY ./backend ./
+COPY --chown=-user- ./backend ./
 COPY requirements.txt ./
 RUN pip3 install -r requirements.txt --no-cache-dir
 COPY chown nginx:nginx /usr/share/nginx/html/*
