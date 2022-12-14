@@ -1,0 +1,23 @@
+FROM python:3.7-slim
+WORKDIR /app
+ARG USER_ID
+ARG GROUP_ID
+USER root
+RUN if getent passwd www-data; then \
+    userdel -f www-data &&\
+    if getent group www-data ; then groupdel www-data; fi &&\
+    groupadd -g ${GROUP_ID} www-data &&\
+    useradd -l -u ${USER_ID} -g www-data www-data &&\
+    install -d -m 0755 -o www-data -g www-data /home/www-data &&\
+    chown --changes --silent --no-dereference --recursive \
+          --from=33:33 ${USER_ID}:${GROUP_ID} \
+        /home/www-data \
+        /.composer \
+        /var/run/php-fpm \
+        /var/lib/php/sessions \
+;fi
+USER www-data
+COPY ./backend ./
+COPY requirements.txt ./
+RUN pip3 install -r requirements.txt --no-cache-dir
+CMD ["gunicorn", "foodgram_api.wsgi:application", "--bind", "0:8000" ]
