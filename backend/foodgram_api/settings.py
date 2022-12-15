@@ -13,16 +13,20 @@ SECRET_KEY = 'SECRET_KEY'
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '158.160.14.164', '*']
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    '158.160.14.164',
+    '*',
+    '[::1]',
+    'testserver',
+]
 
-CORS_URLS_REGEX = r'^/api/.*$'
 CORS_ALLOWED_ORIGINS = [
     'http://localhost',
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://subdomain.example.com',
-]
+CORS_URLS_REGEX = r'^/api/.*$'
 
 INSTALLED_APPS = [
     'api.apps.ApiConfig',
@@ -72,7 +76,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram_api.wsgi.application'
 
-
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
@@ -84,6 +87,10 @@ DATABASES = {
     }
 }
 
+DJOSER = {
+    'PERMISSIONS': {'user_list':['rest_framework.permissions.AllowAny'],},
+    'HIDE_USERS': False,
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -100,7 +107,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 LANGUAGE_CODE = 'ru-RU'
 
 TIME_ZONE = 'Europe/Moscow'
@@ -110,7 +116,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 STATIC_URL = '/static/'
 

@@ -1,6 +1,6 @@
 # Сервис Foodgram
 ![foodgram_workflow](https://github.com/Rinko69/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
-http://158.160.14.164:80
+http://158.160.14.164:8000
 ____
 
 Проект Foodgram собирает рецепты различных блюд, созданные пользователями.
