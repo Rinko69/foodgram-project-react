@@ -4,10 +4,11 @@ services:
   db:
     image: postgres:13.0-alpine
     volumes:
-      - /var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env
-  web:
+
+  backend:
     image: rinko69/foodgram-project-react:latest
     restart: always
     ports:
@@ -21,12 +22,14 @@ services:
       - db:db
     env_file:
       - ./.env
+
   frontend:
     build:
       context: ../
       dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
+
   nginx:
     image: nginx:1.21.3-alpine
     ports:
@@ -38,8 +41,9 @@ services:
       - static_value:/var/html/static/
       - media_value:/var/html/media/
     depends_on:
-      - web
+      - backend
 
 volumes:
   static_value:
   media_value:
+  postgres_data:
