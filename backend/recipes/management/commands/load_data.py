@@ -1,19 +1,52 @@
-import json
-from django.core.management.base import BaseCommand
+import csv
+import os
 
-from recipes.models import Ingredient
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
+
+from recipes.models import Ingredient, Tag
+
+DATA_ROOT = os.path.join(settings.BASE_DIR, 'data')
 
 
-class Comand(BaseCommand):
-    help = 'Загрузить данные в модель ингредиентов'
+class IngrCommand(BaseCommand):
+    help = 'loading ingredients from data in json or csv'
+
+    def add_arguments(self, parser):
+        parser.add_argument('filename', default='ingredients.csv', nargs='?',
+                            type=str)
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.WARNING('Старт команды'))
-        with open('data/ingredients.json', encoding='utf-8',
-                 ) as data_file_ingredients:
-            ingredient_data = json.loads(data_file_ingredients.read())
-            for ingredients in ingredient_data:
-                Ingredient.objects.get_or_create(**ingredients)
-                print(ingredient_data)
+        try:
+            with open(os.path.join(DATA_ROOT, options['filename']), 'r',
+                      encoding='utf-8') as f:
+                data = csv.reader(f)
+                for row in data:
+                    name, measurement_unit = row
+                    Ingredient.objects.get_or_create(
+                        name=name,
+                        measurement_unit=measurement_unit
+                    )
+        except FileNotFoundError:
+            raise CommandError('Добавьте файл ingredients в директорию data')
 
-        self.stdout.write(self.style.SUCCESS('Данные загружены'))
+
+class TagCommand(BaseCommand):
+
+    def add_arguments(self, parser):
+        parser.add_argument('filename', default='tags.csv', nargs='?',
+                            type=str)
+
+    def handle(self, *args, **options):
+        try:
+            with open(os.path.join(DATA_ROOT, options['filename']), 'r',
+                      encoding='utf-8') as f:
+                datareader = csv.reader(f)
+                for row in datareader:
+                    Tag.objects.get_or_create(
+                        name=row[0],
+                        color=row[1],
+                        slug=row[2]
+                    )
+        except FileNotFoundError:
+            raise CommandError('Добавьте файл tags в директорию data')
