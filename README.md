@@ -1,57 +1,110 @@
 # Сервис Foodgram
+
 ![foodgram_workflow](https://github.com/Rinko69/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
 http://158.160.14.164:80
 ____
 
-Проект Foodgram собирает рецепты различных блюд, созданные пользователями.
 
 ## Технологии
-- Django rest_framework
-- Django rest_framework_simplejwt
-- Django django_filters
-- Git
-- Docker
-- NGINX
-- GUNICORN
-- POSTGRES
+[![Python](https://img.shields.io/badge/-Python-464646?style=flat-square&logo=Python)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/-Django-464646?style=flat-square&logo=Django)](https://www.djangoproject.com/)
+[![Django REST Framework](https://img.shields.io/badge/-Django%20REST%20Framework-464646?style=flat-square&logo=Django%20REST%20Framework)](https://www.django-rest-framework.org/)
+[![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-464646?style=flat-square&logo=PostgreSQL)](https://www.postgresql.org/)
+[![Nginx](https://img.shields.io/badge/-NGINX-464646?style=flat-square&logo=NGINX)](https://nginx.org/ru/)
+[![gunicorn](https://img.shields.io/badge/-gunicorn-464646?style=flat-square&logo=gunicorn)](https://gunicorn.org/)
+[![docker](https://img.shields.io/badge/-Docker-464646?style=flat-square&logo=docker)](https://www.docker.com/)
+[![GitHub%20Actions](https://img.shields.io/badge/-GitHub%20Actions-464646?style=flat-square&logo=GitHub%20actions)](https://github.com/features/actions)
+[![Yandex.Cloud](https://img.shields.io/badge/-Yandex.Cloud-464646?style=flat-square&logo=Yandex.Cloud)](https://cloud.yandex.ru/)
+
 ____
 
-## Как запустить проект:
+## Описание проекта
+
+Foodgram это ресурс для публикации рецептов.  
+Пользователи могут создавать свои рецепты, читать рецепты других пользователей, подписываться на интересных авторов, добавлять лучшие рецепты в избранное, а также создавать список покупок и загружать его в pdf формате
+
+## Установка проекта локально:
 
 ### Клонировать репозиторий:
 ```python
     git clone git@github.com:Rinko69/foodgram-project-react.git
 ```
+### Cоздать и активировать виртуальное окружение:
 
-### Перейдите в директорию foodgram-project-react/infra и создайте файл .env:
+```python
+python -m venv env
+```
 
-### Шаблон наполнения файла:
+```python
+source env/bin/activate
+```
+
+### Cоздайте файл `.env` в директории `/infra/` с содержанием:
+
+```
 - DB_ENGINE=django.db.backends.postgresql # указываем, что работаем с postgresql
 - DB_NAME=postgres # имя базы данных
 - POSTGRES_USER=username # логин для подключения к базе данных
 - POSTGRES_PASSWORD=password # пароль для подключения к БД (установите свой)
 - DB_HOST=db # название сервиса (контейнера)
-- DB_PORT=5432 # порт для подключения к БД 
+- DB_PORT=5432 # порт для подключения к БД
+```
+### Перейти в директирию и установить зависимости из файла requirements.txt:
 
-### Для запуска приложения в контейнерах перейдите в директорию "foodgram-project-react/infra" и выполните команды:
-docker-compose up -d --build 
+```python
+cd backend/
+pip install -r requirements.txt
+```
 
-### Для создания суперюзера выполинте команду:
+### Выполните миграции:
 
-docker-compose exec web python manage.py createsuperuser
+```python
+python manage.py migrate
+```
 
-**Теперь проект готов к работе и доступен по адресу http://localhost/api/v1.
-И также доступен доступ к админке: http://localhost/admin/login/?next=/admin/.**
-____
+### Запустите сервер:
+```python
+python manage.py runserver
+```
 
-### Чтобы сделать резервную копию базы данных выполните команду из директории foodgram-project-react/infra:
-docker-compose exec web python manage.py dumpdata > fixtures.json
+## Запуск проекта в Docker контейнере:
 
-### Чтобы скопировать файл базы данных в контейнер выполните команду из директории foodgram-project-react/infra:
-docker cp fixtures.json <id>:app/
-  
-### И подгрузите данные БД из директории infra/docker-compose.yaml:
-docker-compose exec web python manage.py loaddata fixtures.json
+### Установите Docker:
+
+Параметры запуска описаны в файлах `docker-compose.yml` и `nginx.conf` которые находятся в директории `infra/`.  
+При необходимости добавьте/измените адреса проекта в файле `nginx.conf`
+
+### Запустите docker compose:
+```python
+docker-compose up -d --build
+```  
+  > После сборки появляются 3 контейнера:
+  > 1. контейнер базы данных **db**
+  > 2. контейнер приложения **backend**
+  > 3. контейнер web-сервера **nginx**
+### Примените миграции:
+```python
+docker-compose exec backend python manage.py migrate
+```
+### Загрузите ингредиенты:
+```python
+docker-compose exec backend python manage.py load_ingrs
+```
+### Загрузите теги:
+```python
+docker-compose exec backend python manage.py load_tags
+```
+### Создайте администратора:
+```python
+docker-compose exec backend python manage.py createsuperuser
+```
+### Соберите статику:
+```python
+docker-compose exec backend python manage.py collectstatic --noinput
+```
+
+**Теперь проект готов к работе и доступен по адресу http://158.160.14.164:80.
+И также доступен доступ к админке: http://158.160.14.164/admin/.**
 ____
 
 ## Руководство к проекту:

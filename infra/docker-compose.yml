@@ -4,7 +4,7 @@ services:
   db:
     image: postgres:13.0-alpine
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - /var/lib/postgresql/data/
     env_file:
       - ./.env
 
@@ -21,24 +21,25 @@ services:
     env_file:
       - ./.env
 
-  frontend:
-    image: rinko69/foodgram_frontend:latest
-    volumes:
-      - ../frontend/:/app/result_build/
-
   nginx:
     image: nginx:1.21.3-alpine
     ports:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - static_value:/app/backend_static/
+      - media_value:/app/backend_media/
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs:/usr/share/nginx/html/api/docs/
-      - static_value:/var/html/static/
-      - media_value:/var/html/media/
     restart: always
     depends_on:
       - frontend
+  
+  frontend:
+    image: rinko69/foodgram_frontend:v1
+    volumes:
+      - ../frontend/:/app/result_build/
+
 
 volumes:
   postgres_data:
