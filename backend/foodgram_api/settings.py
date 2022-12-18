@@ -18,8 +18,6 @@ ALLOWED_HOSTS = [
     'localhost',
     '158.160.14.164',
     '*',
-    '[::1]',
-    'testserver',
 ]
 
 CORS_ALLOWED_ORIGINS = [
