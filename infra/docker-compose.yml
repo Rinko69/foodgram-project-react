@@ -22,7 +22,7 @@ services:
       - ./.env
 
   frontend:
-    image: rinko69/foodgram_frontend:v1
+    image: rinko69/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
 
