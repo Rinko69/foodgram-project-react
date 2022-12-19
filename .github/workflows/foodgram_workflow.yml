@@ -62,6 +62,7 @@ jobs:
           file: ./frontend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:latest
+        cd ../
 
   deploy:
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
