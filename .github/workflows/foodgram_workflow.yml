@@ -71,12 +71,12 @@ jobs:
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
         with:
+          context: ./infra
           host: ${{ secrets.SECRET_HOST }}
           username: ${{ secrets.SECRET_USER }}
           key: ${{ secrets.SECRET_SSH }}
           passphrase: ${{ secrets.SECRET_PASSPHRASE }}
           script: |
-            cd infra
             sudo docker-compose stop
             sudo docker-compose rm backend
             sudo docker-compose pull
