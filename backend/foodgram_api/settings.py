@@ -20,8 +20,6 @@ ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = [
     'http://*localhost',
     'https://*localhost',
-    'http://*project-foodgram.ddns.net',
-    'https://*project-foodgram.ddns.net',
 ]
 
 INSTALLED_APPS = [
