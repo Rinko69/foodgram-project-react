@@ -8,7 +8,9 @@ from rest_framework.views import APIView
 
 from api.pagination import CustomPageNumberPagination
 from .models import Follow, MyUser
-from .serializers import CustomUserSerializer, FollowSerializer
+from .serializers import (CustomUserSerializer,
+                          FollowSerializer,
+                          ShowFollowSerializer)
 
 
 class CustomUserViewSet(UserViewSet):
@@ -64,7 +66,8 @@ class FollowViewSet(APIView):
 
 
 class FollowListView(ListAPIView):
-    serializer_class = FollowSerializer
+    queryset = MyUser.objects.all()
+    serializer_class = ShowFollowSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPageNumberPagination
 

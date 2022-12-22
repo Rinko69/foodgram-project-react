@@ -130,6 +130,28 @@ class IngredientRecipe(models.Model):
         )
 
 
+class TagRecipe(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Название рецепта'
+    )
+    tag = models.ForeignKey(
+        Tag,
+        on_delete=models.CASCADE,
+        verbose_name='Тэг рецепта'
+    )
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['tag', 'recipe'],
+                                               name='unique_recipe_tag')]
+        verbose_name = 'Тэги рецепта'
+        verbose_name_plural = 'Тэги рецепта'
+
+    def __str__(self):
+        return 'Тэг рецепта'
+
+
 class Favorite(models.Model):
     user = models.ForeignKey(
         MyUser,
