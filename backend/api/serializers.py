@@ -88,34 +88,45 @@ class RecipeSerializer(serializers.ModelSerializer):
             'id', 'author', 'ingredients', 'tags', 'image',
             'name', 'text', 'cooking_time')
 
-    def validate_ingredients(self, value):
+    def validate_ingredients(self, data):
+        amount = ingredient['amount']
+        ingredients = data['ingredients']
         ingredients_set = []
-        for ingredient in value:
+        for ingredient in ingredients:
             if ingredient['id'] in ingredients_set:
-                raise serializers.ValidationError(
-                    'Каждый ингредиент может быть упомянут только один раз'
-                )
-            elif ingredient['amount'] < 1:
-                raise serializers.ValidationError(
-                    'Количество ингредиентов должно быть целым'
-                    ' положительным числом'
-                )
+                raise serializers.ValidationError({
+                    'ingredients': 'Каждый ингредиент может быть упомянут только один раз!'
+                })                
+            elif int(amount) < 1:
+                raise serializers.ValidationError({
+                    'amount': 'Количество ингредиентов должно быть целым'
+                    ' положительным числом!'
+                })
             else:
                 ingredients_set.append(ingredient['id'])
-        return value
+        return data
 
-    def validate_tags(self, value):
-        if len(value) != len(set(value)):
-            raise serializers.ValidationError(
-                'Каждый тег может быть упомянут только один раз'
-            )
-        return value
+    def validate_tags(self, data):
+        tags = data['tags']
+        if not tags:
+            raise serializers.ValidationError({
+                'tags': 'Нужно выбрать хотя бы один тэг!'
+            })
+        tags_list = []
+        for tag in tags:
+            if tag in tags_list:
+                raise serializers.ValidationError({
+                    'tags': 'Тэги должны быть уникальными!'
+                })
+            tags_list.append(tag)
 
-    def validate_cooking_time(self, value):
-        if value <= 0:
-            raise serializers.ValidationError('Время готовки должно быть положительным'
-                                  ' числом, не менее 1 минуты!')
-        return value
+    def validate_cooking_time(self, data):
+        cooking_time = data['cooking_time']
+        if int(cooking_time) <= 0:
+            raise serializers.ValidationError({
+                'cooking_time': 'Время приготовления должно быть больше 0!'
+            })
+        return data
 
     def create_ingredients(ingredients, recipe):
         for ingredient in ingredients:
@@ -202,7 +213,9 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         recipe_id = data['recipe'].id
         if ShoppingCart.objects.filter(user=user,
                                        recipe__id=recipe_id).exists():
-            raise serializers.ValidationError('Рецепт уже добавлен в список покупок!')
+            raise serializers.ValidationError({
+                'status': 'Рецепт уже добавлен в список покупок!'
+            })
         return data
 
     def to_representation(self, instance):
