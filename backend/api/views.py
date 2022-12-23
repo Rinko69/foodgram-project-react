@@ -48,62 +48,43 @@ class RecipeViewSet(ModelViewSet):
             return RecipeListSerializer
         return RecipeSerializer
 
-    @action(
-        detail=True,
-        methods=["POST", "DELETE"],
-        url_path="favorite",
-        permission_classes=[IsAuthorOrAdmin],
-    )
-    def favorite(self, request, pk=None):
+    @staticmethod
+    def post_method_for_actions(request, pk, serializers):
+        data = {'user': request.user.id, 'recipe': pk}
+        serializer = serializers(data=data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @staticmethod
+    def delete_method_for_actions(request, pk, model):
         user = request.user
         recipe = get_object_or_404(Recipe, id=pk)
-        if request.method == "POST":
-            if Favorite.objects.filter(user=user, recipe=recipe).exists():
-                return Response(
-                    {"error": "Этот рецепт уже в избранном"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            favorite = Favorite.objects.create(user=user, recipe=recipe)
-            serializer = FavoriteSerializer(favorite,
-                                             context={"request": request})
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        model_obj = get_object_or_404(model, user=user, recipe=recipe)
+        model_obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-        if request.method == "DELETE":
-            favorite = Favorite.objects.filter(user=user, recipe=recipe)
-            if favorite.exists():
-                favorite.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+    @action(detail=True, methods=["POST"],
+            permission_classes=[IsAuthorOrAdmin])
+    def favorite(self, request, pk):
+        return self.post_method_for_actions(
+            request=request, pk=pk, serializers=FavoriteSerializer)
 
-    @action(
-        detail=True,
-        methods=["POST", "DELETE"],
-        url_path="shopping_cart",
-        permission_classes=[IsAuthorOrAdmin],
-    )
-    def shopping_cart(self, request, pk=None):
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=pk)
-        if request.method == "POST":
-            if ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
-                return Response(
-                    {"error": "Этот рецепт уже в корзине покупок"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            shoping_cart = ShoppingCart.objects.create(user=user,
-                                                       recipe=recipe)
-            serializer = ShoppingCartSerializer(
-                shoping_cart, context={"request": request}
-            )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+    @favorite.mapping.delete
+    def delete_favorite(self, request, pk):
+        return self.delete_method_for_actions(
+            request=request, pk=pk, model=Favorite)
 
-        if request.method == "DELETE":
-            delete_shoping_cart = ShoppingCart.objects.filter(user=user,
-                                                              recipe=recipe)
-            if delete_shoping_cart.exists():
-                delete_shoping_cart.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+    @action(detail=True, methods=["POST"],
+            permission_classes=[IsAuthorOrAdmin])
+    def shopping_cart(self, request, pk):
+        return self.post_method_for_actions(
+            request=request, pk=pk, serializers=ShoppingCartSerializer)
+
+    @shopping_cart.mapping.delete
+    def delete_shopping_cart(self, request, pk):
+        return self.delete_method_for_actions(
+            request=request, pk=pk, model=ShoppingCart)
 
     @action(detail=False, methods=["GET"],
             permission_classes=[permissions.IsAuthenticated])

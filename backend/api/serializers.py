@@ -88,25 +88,22 @@ class RecipeSerializer(serializers.ModelSerializer):
             'id', 'author', 'ingredients', 'tags', 'image',
             'name', 'text', 'cooking_time')
 
-    def validate_ingredients(self, data):
+    def validate(self, data):
         ingredients = data['ingredients']
-        ingredients_set = []
+        ingredients_list = []
         for ingredient in ingredients:
             ingredient_id = ingredient['id']
-            if ingredient_id in ingredients_set:
+            if ingredient_id in ingredients_list:
                 raise serializers.ValidationError({
-                    'ingredients': 'Каждый ингредиент может быть упомянут только один раз!'
+                    'ingredients': 'Ингредиенты должны быть уникальными!'
                 })
-            ingredients_set.append(ingredient_id)
-            amount = ingredient['amount']             
-            if int(amount) < 1:
+            ingredients_list.append(ingredient_id)
+            amount = ingredient['amount']
+            if int(amount) <= 0:
                 raise serializers.ValidationError({
-                    'amount': 'Количество ингредиентов должно быть целым'
-                    ' положительным числом!'
+                    'amount': 'Количество ингредиента должно быть больше нуля!'
                 })
-        return data
 
-    def validate_tags(self, data):
         tags = data['tags']
         if not tags:
             raise serializers.ValidationError({
@@ -120,7 +117,6 @@ class RecipeSerializer(serializers.ModelSerializer):
                 })
             tags_list.append(tag)
 
-    def validate_cooking_time(self, data):
         cooking_time = data['cooking_time']
         if int(cooking_time) <= 0:
             raise serializers.ValidationError({
@@ -128,27 +124,25 @@ class RecipeSerializer(serializers.ModelSerializer):
             })
         return data
 
+    @staticmethod
     def create_ingredients(ingredients, recipe):
         for ingredient in ingredients:
-            ingredient_id=ingredient['id']
-            amount=ingredient['amount']
-            if IngredientRecipe.objects.filter(
-                recipe=recipe,
-                ingredient=ingredient_id,
-            ).exists():
-                amount += ingredient['amount']
-            IngredientRecipe.objects.update_or_create(
-                recipe=recipe,
-                ingredient=ingredient_id,
-                defaults={'amount': amount},
+            IngredientRecipe.objects.create(
+                recipe=recipe, ingredient=ingredient['id'],
+                amount=ingredient['amount']
             )
+
+    @staticmethod
+    def create_tags(tags, recipe):
+        for tag in tags:
+            recipe.tags.add(tag)
 
     def create(self, validated_data):
         author = self.context.get('request').user
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(author=author, **validated_data)
-        recipe.tags.set(tags)
+        self.create_tags(tags, recipe)
         self.create_ingredients(ingredients, recipe)
         return recipe
 
