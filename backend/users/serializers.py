@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 
@@ -57,17 +58,21 @@ class FollowRecipeSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(CustomUserSerializer):
-    recipes = serializers.SerializerMethodField(read_only=True)
-    recipes_count = serializers.SerializerMethodField(read_only=True)
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = MyUser
         fields = ('email', 'id', 'username', 'first_name', 'last_name',
                   'is_subscribed', 'recipes', 'recipes_count')
+        read_only_fields = fields
 
-    @staticmethod
-    def get_recipes_count(obj):
-        return obj.recipes.count()
+    def get_is_subscribed(self, obj):
+        if not self.context['request'].user.is_authenticated:
+            return False
+        return Follow.objects.filter(
+            author=obj, user=self.context['request'].user).exists()
 
     def get_recipes(self, obj):
         request = self.context.get('request')
@@ -77,23 +82,6 @@ class FollowSerializer(CustomUserSerializer):
             recipes = recipes[:int(recipes_limit)]
         return FollowRecipeSerializer(recipes, many=True).data
 
-
-class ShowFollowSerializer(serializers.ModelSerializer):
-    is_subscribed = serializers.SerializerMethodField()
-    recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = MyUser
-        fields = (
-            'id', 'email', 'username', 'first_name', 'last_name',
-            'is_subscribed', 'recipes', 'recipes_count'
-        )
-        read_only_fields = fields
-
-    def get_is_subscribed(self, obj):
-        if not self.context['request'].user.is_authenticated:
-            return False
-        return Follow.objects.filter(
-            author=obj, user=self.context['request'].user).exists()
-
+    def get_recipes_count(self, obj):
+        user = get_object_or_404(MyUser, pk=obj.pk)
+        return Recipe.objects.filter(author=user).count()
