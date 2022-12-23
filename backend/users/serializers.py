@@ -69,18 +69,25 @@ class FollowSerializer(CustomUserSerializer):
         read_only_fields = fields
 
     def get_is_subscribed(self, obj):
-        if not self.context['request'].user.is_authenticated:
+        user = self.context.get('request').user
+        if not user:
             return False
-        return Follow.objects.filter(
-            author=obj, user=self.context['request'].user).exists()
+        return Follow.objects.filter(user=user, author=obj).exists()
 
     def get_recipes(self, obj):
         request = self.context.get('request')
         recipes = obj.recipes.all()
         recipes_limit = request.query_params.get('recipes_limit')
-        if recipes_limit:
-            recipes = recipes[:int(recipes_limit)]
-        return FollowRecipeSerializer(recipes, many=True).data
+        if recipes_limit is not None:
+            recipes = obj.recipes.all()[:(int(recipes_limit))]
+        else:
+            recipes = obj.recipes.all()
+        context = {'request': request}
+        return FollowRecipeSerializer(
+            recipes,
+            context=context,
+            many=True,
+        ).data
 
     def get_recipes_count(self, obj):
         user = get_object_or_404(MyUser, pk=obj.pk)

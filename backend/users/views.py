@@ -1,5 +1,9 @@
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
+from django.http import HttpResponse
 from djoser.views import UserViewSet
 from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.generics import ListAPIView, get_object_or_404
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
@@ -21,42 +25,36 @@ class CustomUserViewSet(UserViewSet):
 class FollowViewSet(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
-        pk = kwargs.get('id', None)
+    @api_view(['POST', 'DELETE'])
+    def follow_author(request, pk):
+        user = get_object_or_404(MyUser, username=request.user.username)
         author = get_object_or_404(MyUser, pk=pk)
-        user = request.user
-
-        if author == user:
-            return Response(
-                {'errors': 'Вы не можете подписываться на себя!'},
-                status=status.HTTP_400_BAD_REQUEST)
-
-        if Follow.objects.filter(author=author, user=user).exists():
-            return Response(
-                {'errors': 'Вы уже подписаны на этого пользователя!'},
-                status=status.HTTP_400_BAD_REQUEST)
-
-        obj = Follow(author=author, user=user)
-        obj.save()
-
-        serializer = FollowSerializer(
-            author, context={'request': request})
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def delete(self, request, id):
-        user = request.user
-        author = get_object_or_404(MyUser, id=id)
-        try:
-            subscription = get_object_or_404(Follow, user=user,
-                                             author=author)
-            subscription.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except Follow.DoesNotExist:
-            return Response(
-                'Ошибка отписки!',
-                status=status.HTTP_400_BAD_REQUEST,
+        if request.method == 'POST':
+            if user.id == author.id:
+                content = {'errors': 'Нельзя подписаться на себя!'}
+                return Response(content, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                Follow.objects.create(user=user, author=author)
+            except IntegrityError:
+                content = {'errors': 'Вы уже подписаны на данного автора!'}
+                return Response(content, status=status.HTTP_400_BAD_REQUEST)
+            follows = MyUser.objects.all().filter(username=author)
+            serializer = FollowSerializer(
+                follows,
+                context={'request': request},
+                many=True,
             )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+            try:
+                subscription = Follow.objects.get(user=user, author=author)
+            except ObjectDoesNotExist:
+                content = {'errors': 'Вы не подписаны на данного автора!'}
+                return Response(content, status=status.HTTP_400_BAD_REQUEST)
+            subscription.delete()
+            return HttpResponse('Вы успешно отписаны от этого автора!',
+                            status=status.HTTP_204_NO_CONTENT)
 
 
 class FollowListView(ListAPIView):
