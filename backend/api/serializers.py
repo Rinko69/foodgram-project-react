@@ -89,21 +89,21 @@ class RecipeSerializer(serializers.ModelSerializer):
             'name', 'text', 'cooking_time')
 
     def validate_ingredients(self, data):
-        amount = ingredient['amount']
         ingredients = data['ingredients']
         ingredients_set = []
         for ingredient in ingredients:
-            if ingredient['id'] in ingredients_set:
+            ingredient_id = ingredient['id']
+            if ingredient_id in ingredients_set:
                 raise serializers.ValidationError({
                     'ingredients': 'Каждый ингредиент может быть упомянут только один раз!'
-                })                
-            elif int(amount) < 1:
+                })
+            ingredients_set.append(ingredient_id)
+            amount = ingredient['amount']             
+            if int(amount) < 1:
                 raise serializers.ValidationError({
                     'amount': 'Количество ингредиентов должно быть целым'
                     ' положительным числом!'
                 })
-            else:
-                ingredients_set.append(ingredient['id'])
         return data
 
     def validate_tags(self, data):
